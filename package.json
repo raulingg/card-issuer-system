@@ -1,0 +1,63 @@
+{
+  "name": "card-issuer-system",
+  "version": "0.0.1",
+  "private": true,
+  "packageManager": "npm@10.9.3",
+  "license": "MIT",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "test": "turbo test",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,json,md}\"",
+    "prepare": "husky"
+  },
+  "workspaces": [
+    "services/*",
+    "libs/*"
+  ],
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@swc-node/register": "^1.9.2",
+    "@swc/core": "^1.7.26",
+    "@types/jest": "30.0.0",
+    "@types/node": "^22.7.4",
+    "@typescript-eslint/eslint-plugin": "^8.7.0",
+    "@typescript-eslint/parser": "^8.7.0",
+    "eslint": "^9.11.1",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-prettier": "^5.2.1",
+    "globals": "^17.4.0",
+    "husky": "^9.1.6",
+    "jest": "30.0.5",
+    "jest-util": "30.0.5",
+    "prettier": "^3.3.3",
+    "rimraf": "^6.0.1",
+    "ts-jest": "29.4.6",
+    "ts-loader": "^9.5.4",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "turbo": "^2.8.16",
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/microservices": "^11.0.0",
+    "@nestjs/mongoose": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/terminus": "^11.0.0",
+    "kafkajs": "^2.2.4",
+    "mongoose": "^8.7.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "zod": "^3.23.8"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

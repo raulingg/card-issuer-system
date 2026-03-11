@@ -1,0 +1,27 @@
+name: card-issuer-system
+
+# Development overrides: mount source, use ts-node, expose all ports
+services:
+  user-service:
+    build:
+      target: deps
+    command: npx turbo dev --filter=user-service
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      HTTP_PORT: 3001
+
+  notification-service:
+    build:
+      target: deps
+    command: npx turbo dev --filter=notification-service
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+
+  kafka-ui:
+    profiles: [] # Always start kafka-ui in dev

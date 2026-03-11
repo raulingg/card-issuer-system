@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@libs/common": ["libs/common/src/index.ts"],
+      "@libs/common/*": ["libs/common/src/*"],
+      "@libs/kafka": ["libs/kafka/src/index.ts"],
+      "@libs/kafka/*": ["libs/kafka/src/*"],
+      "@libs/database": ["libs/database/src/index.ts"],
+      "@libs/database/*": ["libs/database/src/*"],
+      "@libs/config": ["libs/config/src/index.ts"],
+      "@libs/config/*": ["libs/config/src/*"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

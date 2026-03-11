@@ -1,0 +1,53 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "package-lock.json",
+    "tsconfig.base.json",
+    ".env*"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ],
+      "inputs": [
+        "src/**/*.ts",
+        "nest-cli.json",
+        "package.json",
+        "tsconfig.json"
+      ]
+    },
+    "lint": {
+      "dependsOn": [
+        "^lint"
+      ],
+      "inputs": [
+        "src/**/*.ts",
+        "eslint.config.js"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "build"
+      ],
+      "outputs": [
+        "coverage/**"
+      ],
+      "inputs": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.ts"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+    },
+    "format": {
+      "cache": false
+    }
+  }
+}
