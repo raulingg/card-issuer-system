@@ -8,8 +8,7 @@ build
 coverage
 
 # NX cache
-.nx/cache
-.nx/workspace-data
+.turbo
 
 # Environment
 .env

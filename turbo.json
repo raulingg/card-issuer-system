@@ -29,18 +29,10 @@
         "eslint.config.js"
       ]
     },
-    "test": {
-      "dependsOn": [
-        "build"
-      ],
-      "outputs": [
-        "coverage/**"
-      ],
-      "inputs": [
-        "src/**/*.ts",
-        "test/**/*.ts",
-        "jest.config.ts"
-      ]
+    "test": {},
+    "test:watch": {
+      "cache": false,
+      "persistent": true
     },
     "dev": {
       "cache": false,
