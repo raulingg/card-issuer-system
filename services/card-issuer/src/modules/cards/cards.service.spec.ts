@@ -4,7 +4,7 @@ import { CardsService } from './cards.service';
 import { CardsRepository } from './cards.repository';
 import { KafkaTopic, KAFKA_CLIENT } from '@libs/kafka';
 import { ConflictException } from '@nestjs/common';
-import type { IssueCardDto } from './dto/issue-card.dto';
+import type { CardRequestDto } from './dto/issue-card.dto';
 import { CARD_REQUEST_STATUSES } from './schemas/card-request-status.enum';
 import type { CardRequestDocument } from './schemas/card-request.schema';
 import { CardRequest } from './schemas/card-request.schema';
@@ -18,7 +18,7 @@ jest.mock('crypto', () => ({
   randomUUID: jest.fn(() => requestId),
 }));
 
-function issueCardDtoFactory(data: Partial<IssueCardDto> = {}): IssueCardDto {
+function CardRequestDtoFactory(data: Partial<CardRequestDto> = {}): CardRequestDto {
   return {
     customer: {
       documentType: 'DNI',
@@ -81,31 +81,31 @@ describe('CardsService', () => {
 
   describe('issueCard', () => {
     it('should successfully issue a card and emit a Kafka event', async () => {
-      const mockIssueCardDto = issueCardDtoFactory();
+      const mockCardRequestDto = CardRequestDtoFactory();
       cardsRepository.checkIfCustomerHasAlreadyIssuedCardOrPendingRequest.mockResolvedValue(false);
       cardsRepository.create.mockResolvedValue({} as any);
 
-      const result = await cardsService.issueCard(mockIssueCardDto);
+      const result = await cardsService.issueCard(mockCardRequestDto);
 
       expect(
         cardsRepository.checkIfCustomerHasAlreadyIssuedCardOrPendingRequest,
-      ).toHaveBeenCalledWith(mockIssueCardDto.customer.documentNumber);
+      ).toHaveBeenCalledWith(mockCardRequestDto.customer.documentNumber);
 
       expect(cardsRepository.create).toHaveBeenCalledWith({
         requestId,
         customer: {
-          documentNumber: mockIssueCardDto.customer.documentNumber,
-          documentType: mockIssueCardDto.customer.documentType,
-          fullName: mockIssueCardDto.customer.fullName,
-          age: mockIssueCardDto.customer.age,
-          email: mockIssueCardDto.customer.email,
+          documentNumber: mockCardRequestDto.customer.documentNumber,
+          documentType: mockCardRequestDto.customer.documentType,
+          fullName: mockCardRequestDto.customer.fullName,
+          age: mockCardRequestDto.customer.age,
+          email: mockCardRequestDto.customer.email,
         },
         product: {
-          type: mockIssueCardDto.product.type,
-          currency: mockIssueCardDto.product.currency,
+          type: mockCardRequestDto.product.type,
+          currency: mockCardRequestDto.product.currency,
         },
         status: CARD_REQUEST_STATUSES.PENDING,
-        forceError: mockIssueCardDto.forceError,
+        forceError: mockCardRequestDto.forceError,
       });
 
       expect(kafkaClient.emit).toHaveBeenCalledWith(
@@ -128,14 +128,14 @@ describe('CardsService', () => {
     });
 
     it('should throw ConflictException if the customer already has an issued card or pending request', async () => {
-      const mockIssueCardDto = issueCardDtoFactory();
+      const mockCardRequestDto = CardRequestDtoFactory();
       cardsRepository.checkIfCustomerHasAlreadyIssuedCardOrPendingRequest.mockResolvedValue(true);
 
-      await expect(cardsService.issueCard(mockIssueCardDto)).rejects.toThrow(ConflictException);
+      await expect(cardsService.issueCard(mockCardRequestDto)).rejects.toThrow(ConflictException);
 
       expect(
         cardsRepository.checkIfCustomerHasAlreadyIssuedCardOrPendingRequest,
-      ).toHaveBeenCalledWith(mockIssueCardDto.customer.documentNumber);
+      ).toHaveBeenCalledWith(mockCardRequestDto.customer.documentNumber);
       expect(cardsRepository.create).not.toHaveBeenCalled();
       expect(kafkaClient.emit).not.toHaveBeenCalled();
     });

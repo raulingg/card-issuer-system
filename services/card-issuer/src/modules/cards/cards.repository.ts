@@ -5,6 +5,7 @@ import { BaseRepository } from '@libs/database';
 import { CARD_REQUEST_STATUSES } from './schemas/card-request-status.enum';
 import { CardRequest } from './schemas/card-request.schema';
 import type { CardRequestDocument } from './schemas/card-request.schema';
+import type { CardIssuedEventDataDto } from '@libs/kafka';
 
 @Injectable()
 export class CardsRepository extends BaseRepository<CardRequestDocument> {
@@ -29,8 +30,8 @@ export class CardsRepository extends BaseRepository<CardRequestDocument> {
   }
 
   async markAsIssuedByRequestId(
-    requestId: string,
-    card: { id: string; maskedNumber: string; expirationDate: string },
+    requestId: CardIssuedEventDataDto['requestId'],
+    card: CardIssuedEventDataDto['card'],
   ): Promise<void> {
     await this.cardRequestModel
       .updateOne(

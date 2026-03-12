@@ -2,9 +2,10 @@ import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { KAFKA_CLIENT, KafkaTopic, buildCloudEvent } from '@libs/kafka';
 import { randomUUID } from 'crypto';
-import type { IssueCardDto } from '@libs/common';
+import type { CardIssuedEventDataDto } from '@libs/kafka';
 import { CardsRepository } from './cards.repository';
 import { CARD_REQUEST_STATUSES } from './schemas/card-request-status.enum';
+import { CardRequestDto } from './dto/card-request.dto';
 
 @Injectable()
 export class CardsService {
@@ -16,14 +17,14 @@ export class CardsService {
     @Inject(KAFKA_CLIENT) private readonly kafkaClient: ClientKafka,
   ) {}
 
-  async issueCard(issueCardDto: IssueCardDto) {
+  async issueCard(CardRequestDto: CardRequestDto) {
     const hasIssuedCard =
       await this.cardsRepository.checkIfCustomerHasAlreadyIssuedCardOrPendingRequest(
-        issueCardDto.customer.documentNumber,
+        CardRequestDto.customer.documentNumber,
       );
     if (hasIssuedCard) {
       throw new ConflictException(
-        `Customer with document ${issueCardDto.customer.documentNumber} already holds a card or has a pending request.`,
+        `Customer with document ${CardRequestDto.customer.documentNumber} already holds a card or has a pending request.`,
       );
     }
 
@@ -32,24 +33,24 @@ export class CardsService {
     await this.cardsRepository.create({
       requestId,
       customer: {
-        documentNumber: issueCardDto.customer.documentNumber,
-        documentType: issueCardDto.customer.documentType,
-        fullName: issueCardDto.customer.fullName,
-        age: issueCardDto.customer.age,
-        email: issueCardDto.customer.email,
+        documentNumber: CardRequestDto.customer.documentNumber,
+        documentType: CardRequestDto.customer.documentType,
+        fullName: CardRequestDto.customer.fullName,
+        age: CardRequestDto.customer.age,
+        email: CardRequestDto.customer.email,
       },
       product: {
-        type: issueCardDto.product.type,
-        currency: issueCardDto.product.currency,
+        type: CardRequestDto.product.type,
+        currency: CardRequestDto.product.currency,
       },
       status: CARD_REQUEST_STATUSES.PENDING,
-      forceError: issueCardDto.forceError,
+      forceError: CardRequestDto.forceError,
     });
 
     this.logger.log(`Card request saved, requestId: ${requestId}`);
 
     const event = buildCloudEvent(CardsService.source, KafkaTopic.CARD_REQUESTED, {
-      ...issueCardDto,
+      ...CardRequestDto,
       requestId,
     });
 
@@ -60,12 +61,9 @@ export class CardsService {
     return { requestId, status: CARD_REQUEST_STATUSES.PENDING };
   }
 
-  async completeIssuanceFromEvent(payload: {
-    requestId: string;
-    card: { id: string; maskedNumber: string; expirationDate: string };
-  }): Promise<void> {
-    await this.cardsRepository.markAsIssuedByRequestId(payload.requestId, payload.card);
+  async completeIssuanceFromEvent(event: CardIssuedEventDataDto): Promise<void> {
+    await this.cardsRepository.markAsIssuedByRequestId(event.requestId, event.card);
 
-    this.logger.log(`Marked card request ${payload.requestId} as ISSUED`);
+    this.logger.log(`Marked card request ${event.requestId} as ISSUED`);
   }
 }

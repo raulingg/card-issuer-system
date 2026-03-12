@@ -3,7 +3,7 @@ import { EventPattern, Payload } from '@nestjs/microservices';
 import { KafkaTopic } from '@libs/kafka';
 import { CardProcessorService } from './card-processor.service';
 import { ZodValidationPipe } from '@libs/common';
-import { CardRequestedSchema, CardRequestedDto } from './dto/card-requested.dto';
+import { CardRequestedEventDto, CardRequestedEventSchema } from './dto/card-request-event.dto';
 
 @Controller()
 export class CardProcessorController {
@@ -13,12 +13,12 @@ export class CardProcessorController {
 
   @EventPattern(KafkaTopic.CARD_REQUESTED)
   async handleCardRequested(
-    @Payload(new ZodValidationPipe(CardRequestedSchema)) payload: CardRequestedDto,
+    @Payload(new ZodValidationPipe(CardRequestedEventSchema)) event: CardRequestedEventDto,
   ) {
     this.logger.log(
-      `Received "${KafkaTopic.CARD_REQUESTED}" from source: ${payload.source} event for event ID: ${payload.id}`,
+      `Received "${KafkaTopic.CARD_REQUESTED}" from source: ${event.source} event for event ID: ${event.id}`,
     );
 
-    this.cardProcessorService.processRequest(payload);
+    this.cardProcessorService.processRequest(event);
   }
 }
