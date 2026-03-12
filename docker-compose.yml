@@ -30,7 +30,6 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
     volumes:
       - mongo-data:/data/db
-      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     ports:
       - '27017:27017'
     networks:
@@ -114,11 +113,11 @@ services:
 
   # ─── Application Services ────────────────────────────────────────────────────
 
-  user-service:
+  card-issuer:
     build:
       context: .
-      dockerfile: services/user-service/Dockerfile
-    container_name: user-service
+      dockerfile: services/card-issuer/Dockerfile
+    container_name: card-issuer
     restart: unless-stopped
     depends_on:
       mongo:
@@ -126,15 +125,15 @@ services:
       kafka:
         condition: service_healthy
     env_file:
-      - services/user-service/.env.example
+      - services/card-issuer/.env.example
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       HTTP_PORT: 3001
       MONGO_URI: mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongo:27017
-      MONGO_DB_NAME: user_service_db
+      MONGO_DB_NAME: card_issuer_db
       KAFKA_BROKERS: kafka:9092
-      KAFKA_CLIENT_ID: user-service
-      KAFKA_GROUP_ID: user-service-group
+      KAFKA_CLIENT_ID: card-issuer
+      KAFKA_GROUP_ID: card-issuer-group
     ports:
       - '3001:3001'
     networks:
@@ -147,26 +146,22 @@ services:
       retries: 3
       start_period: 40s
 
-  notification-service:
+  card-processor:
     build:
       context: .
-      dockerfile: services/notification-service/Dockerfile
-    container_name: notification-service
+      dockerfile: services/card-processor/Dockerfile
+    container_name: card-processor
     restart: unless-stopped
     depends_on:
-      mongo:
-        condition: service_healthy
       kafka:
         condition: service_healthy
     env_file:
-      - services/notification-service/.env.example
+      - services/card-processor/.env.example
     environment:
       NODE_ENV: ${NODE_ENV:-production}
-      MONGO_URI: mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongo:27017
-      MONGO_DB_NAME: notification_service_db
       KAFKA_BROKERS: kafka:9092
-      KAFKA_CLIENT_ID: notification-service
-      KAFKA_GROUP_ID: notification-service-group
+      KAFKA_CLIENT_ID: card-processor
+      KAFKA_GROUP_ID: card-processor-group
     networks:
       - backend
       - kafka-net

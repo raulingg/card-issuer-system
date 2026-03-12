@@ -7,18 +7,18 @@
  * - data:   event payload; may include an optional `error` field
  */
 
-export interface CloudEventError {
+export type CloudEventError = {
   message: string;
   attempts?: number;
   [key: string]: unknown;
-}
+};
 
-export interface CloudEvent<T = Record<string, unknown>> {
+export type CloudEvent<T = Record<string, unknown>> = {
   id: number;
   source: string;
   type: string;
   data: T & { error?: CloudEventError };
-}
+};
 
 let eventCounter = 0;
 

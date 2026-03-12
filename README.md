@@ -23,14 +23,14 @@ A production-ready monorepo boilerplate for building event-driven microservices 
 ```
 .
 ├── services/                     # Microservices (one folder per service)
-│   ├── user-service/             # User domain (REST + Kafka)
-│   └── notification-service/     # Notification consumer (Kafka-only)
+│   ├── card-issuer/              # Card issuer domain (REST + Kafka + MongoDB)
+│   └── card-processor/           # Card processor domain (Kafka-only)
 │
-├── libs/                         # Shared libraries (scope:lib)
-│   ├── common/                   # Filters, interceptors, pipes, interfaces
-│   ├── kafka/                    # KafkaModule, topics enum, interfaces
+├── libs/                         # Shared libraries
+│   ├── common/                   # Filters, interceptors, pipes, dto
+│   ├── kafka/                    # KafkaModule, topics enum
 │   ├── database/                 # DatabaseModule, BaseRepository
-│   └── config/                   # Zod env schemas, validateEnv()
+│   └── config/                   # ConfigModule, Zod env schemas, validateEnv()
 │
 ├── docker/
 │   └── mongo-init.js             # DB + index initialization
@@ -66,17 +66,18 @@ Each service follows a strict layered architecture:
 
 ### Shared Libraries
 
-- **`@libs/common`**: `HttpExceptionFilter`, `RpcExceptionFilter`, `LoggingInterceptor`, `TransformInterceptor`, `ZodValidationPipe`
-- **`@libs/kafka`**: `KafkaModule.forRoot()`, `KafkaTopic` enum, message interfaces
-- **`@libs/database`**: `DatabaseModule.forRoot()`, `BaseRepository<T>` abstract class
-- **`@libs/config`**: Zod env schemas (`BaseEnvSchema`, `KafkaEnvSchema`, etc.), `validateEnv()`
+- **`@libs/common`**: `HttpExceptionFilter`, `RpcExceptionFilter`, `LoggingInterceptor`, `ZodValidationPipe`
+- **`@libs/kafka`**: `KafkaModule.forRootAsync()`, `KafkaTopic` enum, message interfaces
+- **`@libs/database`**: `DatabaseModule.forRootAsync()`, `BaseRepository<T>` abstract class
+- **`@libs/config`**: `AppConfigModule.forRoot()`, Zod env schemas (`BaseEnvSchema`, `KafkaEnvSchema`, etc.), `validateEnv()`
 
 ### Event Flow
 
 ```
-User Service  ──── user.created ────►  Notification Service
+Card Issuer  ──── io.card.requested.v1 ────►  Card Processor
 
-Notification  ──── notification.sent ──►  User Service
+Card Processor  |──── io.card.issued.v1          ──►  Card Issuer
+                |──── io.card.requested.v1.dlq   ──►  Card Issuer
 ```
 
 ---
@@ -99,8 +100,8 @@ npm install
 ```bash
 # Copy env files
 cp .env.example .env
-cp services/user-service/.env.example services/user-service/.env
-cp services/notification-service/.env.example services/notification-service/.env
+cp services/card-issuer/.env.example services/card-issuer/.env
+cp services/card-processor/.env.example services/card-processor/.env
 
 # Start all services (infrastructure + apps)
 docker compose up --build
@@ -116,8 +117,8 @@ docker compose --profile tools up --build
 docker compose up mongo zookeeper kafka -d
 
 # Serve individual services (with hot reload)
-npm run dev -- --filter=user-service
-npm run dev -- --filter=notification-service
+npm run dev -- --filter=card-issuer
+npm run dev -- --filter=card-processor
 ```
 
 ---
@@ -126,17 +127,17 @@ npm run dev -- --filter=notification-service
 
 ```bash
 # Build a service
-npm run build -- --filter=user-service
+npm run build -- --filter=card-issuer
 
 # Build all services
 npm run build
 
 # Run tests
-npm run test -- --filter=user-service
+npm run test -- --filter=card-issuer
 npm run test
 
 # Lint
-npm run lint -- --filter=user-service
+npm run lint -- --filter=card-issuer
 npm run lint
 ```
 
@@ -168,21 +169,17 @@ npm run lint
 
 ## API Endpoints
 
-### Users
+### Card Issuer service
 
-| Method   | Path                | Description    |
-| -------- | ------------------- | -------------- |
-| `POST`   | `/api/v1/users`     | Create user    |
-| `GET`    | `/api/v1/users`     | List users     |
-| `GET`    | `/api/v1/users/:id` | Get user by ID |
-| `PATCH`  | `/api/v1/users/:id` | Update user    |
-| `DELETE` | `/api/v1/users/:id` | Delete user    |
+| Method   | Path                  | Description    |
+| -------- | --------------------- | -------------- |
+| `POST`   | `/api/v1/cards/issue` | Create user    |
 
 ### Health
 
 | Method | Path                                  | Service      |
 | ------ | ------------------------------------- | ------------ |
-| `GET`  | `http://localhost:3001/api/v1/health` | User Service |
+| `GET`  | `http://localhost:3001/api/v1/health` | Card Issuer  |
 
 ---
 

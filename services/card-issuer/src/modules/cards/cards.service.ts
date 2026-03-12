@@ -2,18 +2,18 @@ import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { KAFKA_CLIENT, KafkaTopic, buildCloudEvent } from '@libs/kafka';
 import { randomUUID } from 'crypto';
-import type { IssueCardDto } from './dto/issue-card.dto';
-import type { CardsRepository } from './cards.repository';
+import type { IssueCardDto } from '@libs/common';
+import { CardsRepository } from './cards.repository';
 import { CARD_REQUEST_STATUSES } from './schemas/card-request-status.enum';
 
 @Injectable()
 export class CardsService {
   private readonly logger = new Logger(CardsService.name);
-  public readonly source = '/card-issuer/cards/issue';
+  public static readonly source = '/card-issuer/cards/issue';
   constructor(
     private readonly cardsRepository: CardsRepository,
     @Inject(KAFKA_CLIENT) private readonly kafkaClient: ClientKafka,
-  ) {}
+  ) { }
 
   async issueCard(issueCardDto: IssueCardDto) {
     const hasIssuedCard =
@@ -47,7 +47,10 @@ export class CardsService {
 
     this.logger.log(`Card request saved, requestId: ${requestId}`);
 
-    const event = buildCloudEvent(this.source, KafkaTopic.CARD_REQUESTED, {});
+    const event = buildCloudEvent(CardsService.source, KafkaTopic.CARD_REQUESTED, {
+      ...issueCardDto,
+      requestId,
+    });
 
     this.kafkaClient.emit(KafkaTopic.CARD_REQUESTED, {
       pattern: KafkaTopic.CARD_REQUESTED,

@@ -13,4 +13,3 @@ export enum KafkaTopic {
   CARD_ISSUED = 'io.cards.issued.v1',
   CARD_REQUEST_DLQ = 'io.card.requested.v1.dlq',
 }
-

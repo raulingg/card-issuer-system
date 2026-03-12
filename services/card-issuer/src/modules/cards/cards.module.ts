@@ -8,6 +8,6 @@ import { CardRequest, CardRequestSchema } from './schemas/card-request.schema';
 @Module({
   imports: [MongooseModule.forFeature([{ name: CardRequest.name, schema: CardRequestSchema }])],
   controllers: [CardsController],
-  providers: [CardsService, CardsRepository],
+  providers: [CardsService, CardsRepository]
 })
-export class CardsModule {}
+export class CardsModule { }

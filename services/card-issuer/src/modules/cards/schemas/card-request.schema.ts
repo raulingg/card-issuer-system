@@ -31,6 +31,7 @@ class Product {
 
 export type CardRequestDocument = CardRequest & Document;
 
+@Schema({ _id: false })
 @Schema({ timestamps: true })
 export class CardRequest {
   @Prop({ required: true, unique: true })
@@ -42,7 +43,7 @@ export class CardRequest {
   @Prop({ type: Product, required: true })
   product: Product;
 
-  @Prop({ required: true, enum: Object.values(CARD_REQUEST_STATUSES) })
+  @Prop({ type: String, required: true, enum: Object.values(CARD_REQUEST_STATUSES) })
   status: CardRequestStatus;
 
   @Prop({ type: Boolean, default: false })

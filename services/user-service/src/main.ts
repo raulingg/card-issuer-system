@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import type { MicroserviceOptions } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
-import { HttpExceptionFilter, LoggingInterceptor, TransformInterceptor } from '@libs/common';
+import { HttpExceptionFilter, LoggingInterceptor } from '@libs/common';
 import type { HttpEnv, MongoEnv, KafkaEnv, BaseEnv } from '@libs/config';
 import { AppModule } from './app.module';
 
@@ -23,7 +23,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
   app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());
+  app.useGlobalInterceptors(new LoggingInterceptor());
   app.enableCors({ origin: configService.get('CORS_ORIGIN', { infer: true }) });
   app.enableShutdownHooks();
 

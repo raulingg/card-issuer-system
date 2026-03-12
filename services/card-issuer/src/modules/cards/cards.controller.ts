@@ -1,7 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, UsePipes } from '@nestjs/common';
 import { ZodValidationPipe } from '@libs/common';
 import { CardsService } from './cards.service';
-import { IssueCardDto, IssueCardSchema } from './dto/issue-card.dto';
+import { IssueCardDto, IssueCardSchema } from '@libs/common';
 
 @Controller('cards')
 export class CardsController {

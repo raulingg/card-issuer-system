@@ -2,10 +2,10 @@ name: card-issuer-system
 
 # Development overrides: mount source, use ts-node, expose all ports
 services:
-  user-service:
+  card-issuer:
     build:
       target: deps
-    command: npx turbo dev --filter=user-service
+    command: npx turbo dev --filter=card-issuer
     volumes:
       - .:/app
       - /app/node_modules
@@ -13,10 +13,10 @@ services:
       NODE_ENV: development
       HTTP_PORT: 3001
 
-  notification-service:
+  card-processor:
     build:
       target: deps
-    command: npx turbo dev --filter=notification-service
+    command: npx turbo dev --filter=card-processor
     volumes:
       - .:/app
       - /app/node_modules

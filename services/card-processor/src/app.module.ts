@@ -7,12 +7,10 @@ import {
   KafkaEnvSchema,
   HttpEnvSchema,
   KafkaEnv,
-  MongoEnv,
 } from '@libs/config';
-import { DatabaseModule } from '@libs/database';
-import { HealthModule } from './modules/health/health.module';
-import { CardsModule } from './modules/cards/cards.module';
 import { KafkaModule } from '@libs/kafka';
+import { CardProcessorService } from './card-processor.service';
+import { CardProcessorController } from './card-processor.controller';
 
 const ServiceEnvSchema = BaseEnvSchema.merge(MongoEnvSchema)
   .merge(KafkaEnvSchema)
@@ -21,13 +19,6 @@ const ServiceEnvSchema = BaseEnvSchema.merge(MongoEnvSchema)
 @Module({
   imports: [
     AppConfigModule.forRoot(ServiceEnvSchema),
-    DatabaseModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService<MongoEnv, true>) => ({
-        uri: config.get('MONGO_URI', { infer: true }),
-        dbName: config.get('MONGO_DB_NAME', { infer: true }),
-      }),
-    }),
     KafkaModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService<KafkaEnv, true>) => ({
@@ -36,8 +27,8 @@ const ServiceEnvSchema = BaseEnvSchema.merge(MongoEnvSchema)
         groupId: config.get('KAFKA_GROUP_ID', { infer: true }),
       }),
     }),
-    HealthModule,
-    CardsModule,
   ],
+  controllers: [CardProcessorController],
+  providers: [CardProcessorService],
 })
-export class AppModule { }
+export class AppModule {}
