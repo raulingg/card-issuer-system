@@ -66,7 +66,7 @@ Each service follows a strict layered architecture:
 
 ### Shared Libraries
 
-- **`@libs/common`**: `HttpExceptionFilter`, `RpcExceptionFilter`, `LoggingInterceptor`, `ZodValidationPipe`
+- **`@libs/common`**: `HttpExceptionFilter`, `LoggingInterceptor`, `ZodValidationPipe`
 - **`@libs/kafka`**: `KafkaModule.forRootAsync()`, `KafkaTopic` enum, message interfaces
 - **`@libs/database`**: `DatabaseModule.forRootAsync()`, `BaseRepository<T>` abstract class
 - **`@libs/config`**: `AppConfigModule.forRoot()`, Zod env schemas (`BaseEnvSchema`, `KafkaEnvSchema`, etc.), `validateEnv()`
