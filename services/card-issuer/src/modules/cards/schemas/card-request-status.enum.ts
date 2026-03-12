@@ -4,5 +4,4 @@ export const CARD_REQUEST_STATUSES = {
   FAILED: 'FAILED',
 } as const;
 
-export type CardRequestStatus =
-  (typeof CARD_REQUEST_STATUSES)[keyof typeof CARD_REQUEST_STATUSES];
+export type CardRequestStatus = (typeof CARD_REQUEST_STATUSES)[keyof typeof CARD_REQUEST_STATUSES];

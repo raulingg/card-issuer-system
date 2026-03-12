@@ -31,8 +31,6 @@ class Product {
 
 export type CardRequestDocument = CardRequest & Document;
 
-
-
 @Schema({ timestamps: true })
 export class CardRequest {
   @Prop({ required: true, unique: true })

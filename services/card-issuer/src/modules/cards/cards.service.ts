@@ -13,7 +13,7 @@ export class CardsService {
   constructor(
     private readonly cardsRepository: CardsRepository,
     @Inject(KAFKA_CLIENT) private readonly kafkaClient: ClientKafka,
-  ) { }
+  ) {}
 
   async issueCard(issueCardDto: IssueCardDto) {
     const hasIssuedCard =
