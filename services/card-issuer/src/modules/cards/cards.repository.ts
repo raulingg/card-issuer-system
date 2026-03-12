@@ -9,7 +9,7 @@ import type { CardRequestDocument } from './schemas/card-request.schema';
 @Injectable()
 export class CardsRepository extends BaseRepository<CardRequestDocument> {
   constructor(
-    @InjectModel(CardRequest.name) private cardRequestModel: Model<CardRequestDocument>,
+    @InjectModel(CardRequest.name) private readonly cardRequestModel: Model<CardRequestDocument>,
   ) {
     super(cardRequestModel);
   }

@@ -10,6 +10,7 @@ import { CARD_REQUEST_STATUSES } from './schemas/card-request-status.enum';
 export class CardsService {
   private readonly logger = new Logger(CardsService.name);
   public static readonly source = '/card-issuer/cards/issue';
+
   constructor(
     private readonly cardsRepository: CardsRepository,
     @Inject(KAFKA_CLIENT) private readonly kafkaClient: ClientKafka,
