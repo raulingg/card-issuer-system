@@ -45,4 +45,28 @@ export class CardsRepository extends BaseRepository<CardRequestDocument> {
       )
       .exec();
   }
+
+  async markAsFailedByRequestId(
+    requestId: string,
+    reason: string,
+    attempts: number,
+  ): Promise<void> {
+    await this.cardRequestModel
+      .updateOne(
+        { requestId },
+        {
+          $set: {
+            status: CARD_REQUEST_STATUSES.FAILED,
+          },
+          $push: {
+            failureHistory: {
+              at: new Date(),
+              reason,
+              attempts,
+            },
+          },
+        },
+      )
+      .exec();
+  }
 }

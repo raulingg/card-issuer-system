@@ -2,7 +2,7 @@ import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { KAFKA_CLIENT, KafkaTopic, buildCloudEvent } from '@libs/kafka';
 import { randomUUID } from 'crypto';
-import type { CardIssuedEventDataDto } from '@libs/kafka';
+import type { CardIssuedEventDataDto, CardRequestedDlqEventDataDto } from '@libs/kafka';
 import { CardsRepository } from './cards.repository';
 import { CARD_REQUEST_STATUSES } from './schemas/card-request-status.enum';
 import { CardRequestDto } from './dto/card-request.dto';
@@ -61,9 +61,20 @@ export class CardsService {
     return { requestId, status: CARD_REQUEST_STATUSES.PENDING };
   }
 
-  async completeIssuanceFromEvent(event: CardIssuedEventDataDto): Promise<void> {
-    await this.cardsRepository.markAsIssuedByRequestId(event.requestId, event.card);
+  async markRequestAsIssued(eventData: CardIssuedEventDataDto): Promise<void> {
+    await this.cardsRepository.markAsIssuedByRequestId(eventData.requestId, eventData.card);
 
-    this.logger.log(`Marked card request ${event.requestId} as ISSUED`);
+    this.logger.log(`Marked card request ${eventData.requestId} as ISSUED`);
+  }
+
+  async markRequestAsFailed(eventData: CardRequestedDlqEventDataDto): Promise<void> {
+    await this.cardsRepository.markAsFailedByRequestId(
+      eventData.originalPayload.requestId,
+      eventData.reason,
+      eventData.attempts,
+    );
+    this.logger.error(
+      `Marked card request ${eventData.originalPayload.requestId} as FAILED after ${eventData.attempts} attempts. Reason: ${eventData.reason}`,
+    );
   }
 }

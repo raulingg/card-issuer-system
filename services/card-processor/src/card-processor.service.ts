@@ -1,10 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { KafkaTopic, buildCloudEvent, KAFKA_CLIENT, CardIssuedEventDataDto } from '@libs/kafka';
+import {
+  KafkaTopic,
+  buildCloudEvent,
+  KAFKA_CLIENT,
+  CardIssuedEventDataDto,
+  CardRequestedEventDataDto,
+} from '@libs/kafka';
 import { Inject } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { randomUUID } from 'crypto';
 import { setTimeout as delay } from 'node:timers/promises';
-import { CardRequestedEventDto } from './dto/card-request-event.dto';
+import { CardRequestedEventDto } from './card-processor.dto';
 
 @Injectable()
 export class CardProcessorService {
@@ -13,43 +19,44 @@ export class CardProcessorService {
 
   constructor(@Inject(KAFKA_CLIENT) private readonly kafkaClient: ClientKafka) {}
 
-  async processRequest(payload: CardRequestedEventDto) {
+  async processRequest(event: CardRequestedEventDto) {
     let attempts = 0;
     const maxRetries = 3;
     const delays = [1000, 2000, 4000];
 
     while (attempts <= maxRetries) {
       try {
-        if (payload.data.forceError) {
-          throw new Error(`Max retries reached for request ${payload.data.requestId}.`);
+        if (event.data.forceError) {
+          throw new Error(`Max retries reached for request ${event.data.requestId}.`);
         }
 
-        const cardWithRequestIdDto = await this.#simulateExternalCall(payload);
+        const cardWithRequestIdDto = await this.#simulateExternalCall(event);
 
         if ('error' in cardWithRequestIdDto) {
           throw new Error(cardWithRequestIdDto.error);
         }
 
-        const event = buildCloudEvent(
-          CardProcessorService.source,
+        this.kafkaClient.emit(
           KafkaTopic.CARD_ISSUED,
-          cardWithRequestIdDto,
+          buildCloudEvent(
+            CardProcessorService.source,
+            KafkaTopic.CARD_ISSUED,
+            cardWithRequestIdDto,
+          ),
         );
 
-        this.kafkaClient.emit(KafkaTopic.CARD_ISSUED, event);
-
-        this.logger.log(`Card issued for request ${payload.data.requestId}`);
+        this.logger.log(`Card issued for request ${event.data.requestId}`);
         return;
       } catch (err: any) {
         if (attempts >= maxRetries) {
-          await this.#handleFailure(err.message, payload, attempts);
+          await this.#handleFailure(err.message, event.data, attempts);
           return;
         }
 
         // exponential back-off: 1s, 2s, 4s
         const timeToDelayInMilliseconds = delays[attempts];
         this.logger.warn(
-          `Attempt ${attempts + 1} failed for request ${payload.data.requestId}. Retrying in ${timeToDelayInMilliseconds}ms...`,
+          `Attempt ${attempts + 1} failed for request ${event.data.requestId}. Retrying in ${timeToDelayInMilliseconds}ms...`,
         );
         await delay(timeToDelayInMilliseconds);
         attempts++;
@@ -57,16 +64,20 @@ export class CardProcessorService {
     }
   }
 
-  async #handleFailure(reason: string, payload: CardRequestedEventDto, attempts: number) {
+  async #handleFailure(
+    reason: string,
+    originalPayload: CardRequestedEventDataDto,
+    attempts: number,
+  ) {
     this.logger.error(reason);
 
-    const event = buildCloudEvent(CardProcessorService.source, KafkaTopic.CARD_REQUEST_DLQ, {
+    const event = buildCloudEvent(CardProcessorService.source, KafkaTopic.CARD_REQUESTED_DLQ, {
       reason,
       attempts,
-      originalPayload: payload,
+      originalPayload,
     });
 
-    this.kafkaClient.emit(KafkaTopic.CARD_REQUEST_DLQ, event);
+    this.kafkaClient.emit(KafkaTopic.CARD_REQUESTED_DLQ, event);
   }
 
   async #simulateExternalCall(

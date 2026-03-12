@@ -41,6 +41,18 @@ class IssuedCard {
   expirationDate: string;
 }
 
+@Schema({ _id: false })
+class FailureHistoryEntry {
+  @Prop({ type: Date, required: true })
+  at: Date;
+
+  @Prop({ type: String, required: true })
+  reason: string;
+
+  @Prop({ type: Number, required: true })
+  attempts: number;
+}
+
 export type CardRequestDocument = CardRequest & Document;
 
 @Schema({ _id: false })
@@ -60,6 +72,9 @@ export class CardRequest {
 
   @Prop({ type: IssuedCard, required: false })
   card?: IssuedCard;
+
+  @Prop({ type: [FailureHistoryEntry], default: [], required: false })
+  failureHistory?: FailureHistoryEntry[];
 
   @Prop({ type: Boolean, default: false })
   forceError: boolean;

@@ -3,7 +3,7 @@ import { EventPattern, Payload } from '@nestjs/microservices';
 import { KafkaTopic } from '@libs/kafka';
 import { CardProcessorService } from './card-processor.service';
 import { ZodValidationPipe } from '@libs/common';
-import { CardRequestedEventDto, CardRequestedEventSchema } from './dto/card-request-event.dto';
+import { CardRequestedEventDto, CardRequestedEventSchema } from './card-processor.dto';
 
 @Controller()
 export class CardProcessorController {

@@ -171,15 +171,15 @@ npm run lint
 
 ### Card Issuer service
 
-| Method   | Path                  | Description    |
-| -------- | --------------------- | -------------- |
-| `POST`   | `/api/v1/cards/issue` | Create user    |
+| Method | Path                  | Description |
+| ------ | --------------------- | ----------- |
+| `POST` | `/api/v1/cards/issue` | Create user |
 
 ### Health
 
-| Method | Path                                  | Service      |
-| ------ | ------------------------------------- | ------------ |
-| `GET`  | `http://localhost:3001/api/v1/health` | Card Issuer  |
+| Method | Path                                  | Service     |
+| ------ | ------------------------------------- | ----------- |
+| `GET`  | `http://localhost:3001/api/v1/health` | Card Issuer |
 
 ---
 

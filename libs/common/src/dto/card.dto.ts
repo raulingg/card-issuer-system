@@ -21,14 +21,20 @@ export const CardRequestSchema = z.object({
   forceError: z.boolean().default(false),
 });
 
-const RequestIdSchema = z.string().nonempty();
+const nonEmptyProp = z.string().nonempty();
 
 export const CardRequestedEventDataSchema = z.object({
-  requestId: RequestIdSchema,
+  requestId: nonEmptyProp,
   ...CardRequestSchema.shape,
 });
 
 export const CardIssuedEventDataSchema = z.object({
-  requestId: RequestIdSchema,
+  requestId: nonEmptyProp,
   card: CardSchema,
+});
+
+export const CardRequestedDlqEventDataSchema = z.object({
+  reason: nonEmptyProp,
+  attempts: z.number().int(),
+  originalPayload: CardRequestedEventDataSchema,
 });
