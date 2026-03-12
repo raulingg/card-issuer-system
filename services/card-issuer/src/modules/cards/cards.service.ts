@@ -53,13 +53,19 @@ export class CardsService {
       requestId,
     });
 
-    this.kafkaClient.emit(KafkaTopic.CARD_REQUESTED, {
-      pattern: KafkaTopic.CARD_REQUESTED,
-      data: event,
-    });
+    this.kafkaClient.emit(KafkaTopic.CARD_REQUESTED, event);
 
     this.logger.log(`Published event ${KafkaTopic.CARD_REQUESTED} for requestId: ${requestId}`);
 
     return { requestId, status: CARD_REQUEST_STATUSES.PENDING };
+  }
+
+  async completeIssuanceFromEvent(payload: {
+    requestId: string;
+    card: { id: string; maskedNumber: string; expirationDate: string };
+  }): Promise<void> {
+    await this.cardsRepository.markAsIssuedByRequestId(payload.requestId, payload.card);
+
+    this.logger.log(`Marked card request ${payload.requestId} as ISSUED`);
   }
 }

@@ -27,4 +27,21 @@ export class CardsRepository extends BaseRepository<CardRequestDocument> {
       .exec();
     return count > 0;
   }
+
+  async markAsIssuedByRequestId(
+    requestId: string,
+    card: { id: string; maskedNumber: string; expirationDate: string },
+  ): Promise<void> {
+    await this.cardRequestModel
+      .updateOne(
+        { requestId },
+        {
+          $set: {
+            status: CARD_REQUEST_STATUSES.ISSUED,
+            card,
+          },
+        },
+      )
+      .exec();
+  }
 }

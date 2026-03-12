@@ -29,6 +29,18 @@ class Product {
   currency: string;
 }
 
+@Schema({ _id: false })
+class IssuedCard {
+  @Prop({ required: true })
+  id: string;
+
+  @Prop({ required: true })
+  maskedNumber: string;
+
+  @Prop({ required: true })
+  expirationDate: string;
+}
+
 export type CardRequestDocument = CardRequest & Document;
 
 @Schema({ _id: false })
@@ -45,6 +57,9 @@ export class CardRequest {
 
   @Prop({ type: String, required: true, enum: Object.values(CARD_REQUEST_STATUSES) })
   status: CardRequestStatus;
+
+  @Prop({ type: IssuedCard, required: false })
+  card?: IssuedCard;
 
   @Prop({ type: Boolean, default: false })
   forceError: boolean;

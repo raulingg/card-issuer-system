@@ -12,7 +12,7 @@ export class CardProcessorService {
   private readonly logger = new Logger(CardProcessorService.name);
   public static readonly source = '/card-processor/issue';
 
-  constructor(@Inject(KAFKA_CLIENT) private readonly kafkaClient: ClientKafka) {}
+  constructor(@Inject(KAFKA_CLIENT) private readonly kafkaClient: ClientKafka) { }
 
   async processRequest(payload: CardRequestedDto) {
     let attempts = 0;
@@ -22,7 +22,7 @@ export class CardProcessorService {
     while (attempts <= maxRetries) {
       try {
         if (payload.data.forceError) {
-          throw new Error(`Max retries reached for request ${payload.source}-${payload.id}.`);
+          throw new Error(`Max retries reached for request ${payload.data.requestId}.`);
         }
 
         const cardIssuedDto = await this.#simulateExternalCall(payload);
@@ -37,9 +37,11 @@ export class CardProcessorService {
           cardIssuedDto,
         );
 
+        this.logger.log(event.toString());
+
         this.kafkaClient.emit(KafkaTopic.CARD_ISSUED, event);
 
-        this.logger.log(`Card issued for request ${payload.source}-${payload.id}`);
+        this.logger.log(`Card issued for request ${payload.data.requestId}`);
         return;
       } catch (err: any) {
         if (attempts >= maxRetries) {
@@ -47,9 +49,10 @@ export class CardProcessorService {
           return;
         }
 
+        // exponential back-off: 1s, 2s, 4s
         const timeToDelayInMilliseconds = delays[attempts];
         this.logger.warn(
-          `Attempt ${attempts + 1} failed for request ${payload.source}-${payload.id}. Retrying in ${timeToDelayInMilliseconds}ms...`,
+          `Attempt ${attempts + 1} failed for request ${payload.data.requestId}. Retrying in ${timeToDelayInMilliseconds}ms...`,
         );
         await delay(timeToDelayInMilliseconds);
         attempts++;
@@ -78,7 +81,7 @@ export class CardProcessorService {
 
     if (!success) {
       return {
-        error: `An error ocurren while processing request ${payload.source}-${payload.id} at external service.`,
+        error: `An unexpected error occurred while processing request ${payload.data.requestId} at external service.`,
       };
     }
 
@@ -92,13 +95,13 @@ export class CardProcessorService {
       card: {
         id: randomUUID(),
         maskedNumber: cardNumberMasked,
-        expirationDate: this.#generateRandomExpiryDate(),
+        expirationDate: this.#generateRandomExpirationDate(),
       },
       requestId: payload.data.requestId,
     };
   }
 
-  #generateRandomExpiryDate() {
+  #generateRandomExpirationDate() {
     const today = new Date();
     // Credit cards expire at least one month in the future.
     const minDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
