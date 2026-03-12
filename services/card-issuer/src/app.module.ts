@@ -40,4 +40,4 @@ const ServiceEnvSchema = BaseEnvSchema.merge(MongoEnvSchema)
     CardsModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}
