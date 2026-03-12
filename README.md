@@ -8,13 +8,13 @@ A production-ready monorepo boilerplate for building event-driven microservices 
 | ---------- | --------------------------- |
 | Runtime    | Node.js 22                  |
 | Framework  | NestJS (latest)             |
-| Monorepo   | Turborepo 2                 |
+| Monorepo   | Turborepo 2 🚀              |
 | Messaging  | Kafka (KafkaJS)             |
 | Database   | MongoDB (latest) + Mongoose |
 | Validation | Zod                         |
-| Linting    | ESLint 9 (flat config)      |
-| Formatting | Prettier 3                  |
-| Testing    | Jest + SWC                  |
+| Linting    | ESLint                      |
+| Formatting | Prettier                    |
+| Testing    | Jest                        |
 
 ---
 
@@ -110,16 +110,7 @@ docker compose up --build
 docker compose --profile tools up --build
 ```
 
-### Run locally (development)
-
-```bash
-# Start infrastructure only
-docker compose up mongo zookeeper kafka -d
-
-# Serve individual services (with hot reload)
-npm run dev -- --filter=card-issuer
-npm run dev -- --filter=card-processor
-```
+Note: local runs are not supported yet. There's a pending setup for that 😬
 
 ---
 
@@ -188,6 +179,66 @@ npm run lint
 Each service validates its environment at startup using **Zod**. Missing or malformed variables will throw a descriptive error before the service starts.
 
 See `.env.example` files in each service directory for required variables.
+
+---
+
+## Manual / Integration Verification
+
+> Requires Docker running.
+
+1. Start infrastructure
+
+  ```bash
+  docker compose up -d mongo zookeeper kafka
+  ```
+
+1. Install dependencies
+
+  ```bash
+  npm install
+  ```
+
+1. Start both services in dev mode
+
+  ```bash
+  npm run dev
+  ```
+
+  turbo will start `card-issuer` on `:3001` and `card-processor`
+
+1. **Happy path — issue a card:**
+
+  ```bash
+  curl -X POST http://localhost:3002/api/v1/cards/issue \
+    -H "Content-Type: application/json" \
+    -d '{
+      "customer": { "documentType": "DNI", "documentNumber": "11654321", "fullName": "Jose Perez", "age": 25, "email": "jose@example.com" },
+      "product": { "type": "VISA", "currency": "PEN" },
+      "forceError": false
+    }'
+  # Expected: { "requestId": "<uuid>", "status": "PENDING" }
+  ```
+
+1. **Verify duplicate rejection**
+
+  ```bash
+  # Same request again → 409 Conflict
+  ```
+
+1. **Force error / DLQ path:**
+
+  ```bash
+  curl -X POST http://localhost:3002/api/v1/cards/issue \
+    -d '{ ..., "forceError": true }'
+  # Observe card-processor logs: 3 retries then DLQ publish
+  ```
+
+1. **Monitor Kafka topics (optional: Kafka UI):**
+
+  ```bash
+  docker compose --profile tools up -d kafka-ui
+  # Open http://localhost:8080 → inspect io.card.requested.v1, io.cards.issued.v1, io.card.requested.v1.dlq
+  ```
 
 ---
 
