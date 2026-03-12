@@ -10,8 +10,7 @@
     "test": "turbo test",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,json,md}\"",
-    "prepare": "husky"
+    "format:check": "prettier --check \"**/*.{ts,json,md}\""
   },
   "workspaces": [
     "services/*",
@@ -29,7 +28,6 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "^5.2.1",
     "globals": "^17.4.0",
-    "husky": "^9.1.6",
     "jest": "30.0.5",
     "jest-util": "30.0.5",
     "prettier": "^3.3.3",
