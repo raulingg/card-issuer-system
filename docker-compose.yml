@@ -25,9 +25,6 @@ services:
     image: mongo:latest
     container_name: mongo
     restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
     volumes:
       - mongo-data:/data/db
     ports:
@@ -35,7 +32,7 @@ services:
     networks:
       - backend
     healthcheck:
-      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      test: ['CMD-SHELL', 'mongosh --eval "db.adminCommand({ping: 1})"']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -125,15 +122,15 @@ services:
       kafka:
         condition: service_healthy
     env_file:
-      - services/card-issuer/.env.example
+      - services/card-issuer/.env
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       HTTP_PORT: 3001
-      MONGO_URI: mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongo:27017
-      MONGO_DB_NAME: card_issuer_db
-      KAFKA_BROKERS: kafka:9092
-      KAFKA_CLIENT_ID: card-issuer
-      KAFKA_GROUP_ID: card-issuer-group
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017}
+      MONGO_DB_NAME: ${MONGO_DB_NAME:-card_issuer_db}
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+      KAFKA_CLIENT_ID: ${KAFKA_CLIENT_ID:-card-issuer}
+      KAFKA_GROUP_ID: ${KAFKA_GROUP_ID:-card-issuer-group}
     ports:
       - '3001:3001'
     networks:
@@ -156,12 +153,12 @@ services:
       kafka:
         condition: service_healthy
     env_file:
-      - services/card-processor/.env.example
+      - services/card-processor/.env
     environment:
       NODE_ENV: ${NODE_ENV:-production}
-      KAFKA_BROKERS: kafka:9092
-      KAFKA_CLIENT_ID: card-processor
-      KAFKA_GROUP_ID: card-processor-group
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+      KAFKA_CLIENT_ID: ${KAFKA_CLIENT_ID:-card-processor}
+      KAFKA_GROUP_ID: ${KAFKA_GROUP_ID:-card-processor-group}
     networks:
       - backend
       - kafka-net
