@@ -28,7 +28,6 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   // Kafka microservice listener
-  // Since UsersController uses @MessagePattern and @EventPattern, we must connect as a microservice.
   const kafkaBrokers = configService.get('KAFKA_BROKERS', { infer: true })!;
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.KAFKA,
@@ -51,11 +50,11 @@ async function bootstrap() {
   const host = configService.get('HTTP_HOST', { infer: true }) ?? '0.0.0.0';
   await app.listen(port, host);
 
-  logger.log(`🚀 User Service running on http://${host}:${port}/api/v1`);
+  logger.log(`🚀 card-issuer service running on http://${host}:${port}/api/v1`);
   logger.log(`📨 Kafka microservice listener connected to ${kafkaBrokers.join(', ')}`);
 }
 
 bootstrap().catch((err) => {
-  new Logger('Bootstrap').fatal('Failed to start user-service', err);
+  new Logger('Bootstrap').fatal('Failed to start card-issuer service', err);
   process.exit(1);
 });
